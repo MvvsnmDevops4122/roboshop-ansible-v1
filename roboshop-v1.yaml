@@ -12,7 +12,7 @@
   tasks:
     # Create EC2 instances for each component
     - name: Create EC2 instance
-      amazon.aws.ec2_instance:  # AWS module to manage EC2 instances
+      amazon.aws.ec2_instance:  # AWS module to manage EC2 instances 
         name: "roboshop-{{ item }}"  # EC2 instance name using the current loop item
         image_id: "{{ ami_id }}"  # AMI ID used to launch the instance
         instance_type: t3.micro  # EC2 instance type
@@ -23,3 +23,8 @@
 
       loop: "{{ instances }}"  # Repeat the task for each instance name
       when: action == "create"  # Execute only when action is create
+      register: ec2_output
+
+    - name: print the ec2 output
+      debug:
+       msg: "{{ ec2_output }}"  
