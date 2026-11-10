@@ -77,3 +77,14 @@
 
       loop: "{{ instances }}"                           # Repeat for each instance
       when: action == "delete"                          # Execute only when action is delete
+
+
+# -----------------------------------------------------------------------------------------
+
+# Execute the playbook with action=delete
+# ansible-playbook roboshop-v1.yaml -e "action=delete"
+
+# Command-line extra variables (-e) have higher priority than play-level variables.
+# Here, action=delete overrides action=create defined in the playbook.
+# EC2 creation and Route 53 creation tasks are skipped.
+# Route 53 records are deleted and EC2 instances are terminated.
