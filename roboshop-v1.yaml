@@ -38,5 +38,5 @@
         type: A  # A record maps a domain name to an IPv4 address
         ttl: 1  # DNS record cache time in seconds
         value: "{{ item.instances[0].private_ip_address }}"  # Private IP of the created EC2 instance
-        #overwrite: true
+        overwrite: true
       loop: "{{ ec2_output.results }}"  # Loop through EC2 instance creation results
