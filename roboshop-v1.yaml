@@ -64,5 +64,5 @@
         region: us-east-1
         name: "roboshop-{{ item }}"
         wait: false
-      loop: "{{ instances}}"
+      loop: "{{ instances }}"
       when: action == "delete"
