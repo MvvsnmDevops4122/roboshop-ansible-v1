@@ -1,3 +1,4 @@
+
 # Playbook to create EC2 instances and Route 53 records
 
 - name: Creating EC2 instances and R53 records
@@ -11,58 +12,68 @@
     domain_name: mvvsnm.online                          # Domain name
 
   tasks:
-    # Create EC2 instances for each component
-    - name: Create EC2 instance
-      amazon.aws.ec2_instance:                          # AWS module to manage EC2 instances
-        name: "roboshop-{{ item }}"                     # EC2 instance name using the current loop item
+
+    # --------------------------------------------------
+    # Create EC2 instances
+    # --------------------------------------------------
+
+    - name: Create EC2 instances
+      amazon.aws.ec2_instance:
+        name: "roboshop-{{ item }}"                     # EC2 instance name
         image_id: "{{ ami_id }}"                        # AMI ID used to launch the instance
         instance_type: t3.micro                         # EC2 instance type
         security_groups:
-          - roboshop-common-sg
+          - roboshop-common-sg                          # Common security group
           - "roboshop-{{ item }}-sg"                    # Component-specific security group
         region: us-east-1                               # AWS region
 
-      loop: "{{ instances }}"                           # Repeat the task for each instance name
+      loop: "{{ instances }}"                           # Repeat for each instance name
       when: action == "create"                          # Execute only when action is create
-      register: ec2_output                              # Store EC2 task results in a variable
+      register: ec2_output                              # Store EC2 task results
 
-    # Print EC2 task output (optional)
-    # - name: Print the EC2 output
-    #   debug:
-    #     msg: "{{ ec2_output }}"
-
+    # --------------------------------------------------
     # Create Route 53 DNS records
+    # --------------------------------------------------
+
     - name: Create R53 records
-      amazon.aws.route53:                               # AWS module to manage Route 53 DNS records
+      amazon.aws.route53:
         state: present                                  # Create if it does not exist
         zone: "{{ domain_name }}"                       # Hosted zone domain name
-        record: "{{ item.item }}.{{ domain_name }}"     # DNS record name (mongodb.mvvsnm.online)
-        type: A                                         # A record maps a domain name to an IPv4 address
+        record: "{{ item.item }}.{{ domain_name }}"     # DNS record name
+        type: A                                         # A record maps a domain to an IPv4 address
         ttl: 1                                          # DNS record cache time in seconds
         value: "{{ item.instances[0].private_ip_address }}"  # Private IP of the EC2 instance
         overwrite: true                                 # Allow updating an existing DNS record
 
-      loop: "{{ ec2_output.results }}"                  # Loop through EC2 instance creation results
+      # ec2_output.results is a list containing results from each EC2 task execution.
+      # instances[0] selects the first EC2 instance from the instances list.
+      loop: "{{ ec2_output.results }}"                  # Loop through EC2 creation results
+      when: action == "create"
 
-     # ec2_output.results is a list containing the results from each EC2 task execution.
-     # instances[0] selects the first EC2 instance from the instances list. 
-
+    # --------------------------------------------------
+    # Delete Route 53 DNS records
+    # --------------------------------------------------
 
     - name: Delete R53 records
       amazon.aws.route53:
-        state: absent
-        zone: "{{ domain_name }}"
-        record: "{{ item }}.{{ domain_name }}
-        type: A
-        ttl: 1
-      loop: "{{ instances }}"
-      when: action == "delete"
+        state: absent                                   # Delete the DNS record
+        zone: "{{ domain_name }}"                       # Hosted zone domain name
+        record: "{{ item }}.{{ domain_name }}"          # DNS record name
+        type: A                                         # Record type
+
+      loop: "{{ instances }}"                           # Repeat for each instance
+      when: action == "delete"                          # Execute only when action is delete
+
+    # --------------------------------------------------
+    # Terminate EC2 instances
+    # --------------------------------------------------
 
     - name: Terminate specific EC2 instances
       amazon.aws.ec2_instance:
-        state: absent
-        region: us-east-1
-        name: "roboshop-{{ item }}"
-        wait: false
-      loop: "{{ instances }}"
-      when: action == "delete"
+        state: absent                                   # Terminate the EC2 instance
+        region: us-east-1                               # AWS region
+        name: "roboshop-{{ item }}"                     # EC2 instance name
+        wait: false                                     # Do not wait for termination
+
+      loop: "{{ instances }}"                           # Repeat for each instance
+      when: action == "delete"                          # Execute only when action is delete
