@@ -1,48 +1,46 @@
-# Playbook to configure MYSQL server
+# Playbook to configure MySQL server
 
-- name: Configuration for MYSQL
+- name: Configuration for MySQL
   hosts: mysql # Target inventory group
   become: yes # Execute tasks with root privileges
 
   tasks: # List of tasks to execute
     # -------------------------------------
-    # Disable the default mysql module
+    # Disable the default MySQL module
     # -------------------------------------
 
-    - name: Disable mysql
-      command: dnf module disable mysql -y
+    - name: Disable MySQL
+      command: dnf module disable mysql -y # Disable the default MySQL module
 
     # -------------------------------------
-    # Enable mysql version 7 module
+    # Enable MySQL version 8.4 module
     # -------------------------------------
 
-    - name: Enable mysql
-      command: dnf module enable mysql:8.4 -y
+    - name: Enable MySQL
+      command: dnf module enable mysql:8.4 -y # Enable MySQL 8.4 module
 
     # -------------------------------------
-    # Install mysql server
+    # Install MySQL server
     # -------------------------------------
 
-    - name: Install mysql
-      package:
+    - name: Install MySQL
+      package: # Module to manage software packages
         name: mysql-server # Package name
-        state:
-          present
-          # Ensure the package is installed
+        state: present # Ensure the package is installed
+
+    # -------------------------------------
+    # Start and enable MySQL service
+    # -------------------------------------
 
     - name: Start and enable MySQL service
-      service:
-        name: mysqld
-        state: started
-        enabled: yes
+      service: # Module to manage system services
+        name: mysqld # MySQL service name
+        state: started # Ensure the service is running
+        enabled: yes # Start automatically at boot
 
-    # -  name: set MySQL root password
-    #    ansible.mysql.mysql_user:
-    #     name: root
-    #     host: local
-    #     password: "{{ mysql_root_password }}"
-    #     check_implicit_admin: true
-    #     state: present
+    # -------------------------------------
+    # Set MySQL root password
+    # -------------------------------------
 
-    - name: set MySQL root password
+    - name: Set MySQL root password
       command: mysql_secure_installation --set-root-pass {{ mysql_root_password }}
