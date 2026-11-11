@@ -24,7 +24,7 @@
       state: present
 
   - name: started and enabled mongodb server
-      systemd:
+      service:
         name: mongod
         state: started
         enabled: yes
