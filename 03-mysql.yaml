@@ -36,8 +36,8 @@
         state: started
         enabled: yes
 
-   - name: set MySQL root password
-      ansible.mysql.mysql_user:
+    -  name: set MySQL root password
+       ansible.mysql.mysql_user:
         name: root
         host: local
         password: "{{ mysql_root_password }}"
