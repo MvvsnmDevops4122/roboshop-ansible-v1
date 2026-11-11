@@ -6,6 +6,26 @@
     copy:
       src: mongo.repo
       dest: /etc/yum.repos.d/mongo.repo
-  - name: test the inventory variable
-    debug:
-     msg: "{{ app_name }}"
+
+
+  # - name: test the inventory variable
+  #   debug:
+  #    msg: "{{ app_name }}"
+
+
+# group_vars is a special Ansible directory.
+# Ansible automatically loads matching group variables.
+# The filename must match the inventory group name.
+# The directory should be in an Ansible-supported location, such as the playbook directory or inventory directory.
+
+  - name: install mongo db server
+    pacakage:
+      name: mongodb-org
+      state: present
+
+  - name: started and enabled mongodb server
+      systemd:
+        name: mongod
+        state: started
+        enabled: yes
+  

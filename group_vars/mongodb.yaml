@@ -3,7 +3,3 @@ app_name: mongodb
 
 
 
-# group_vars is a special Ansible directory.
-# Ansible automatically loads matching group variables.
-# The filename must match the inventory group name.
-# The directory should be in an Ansible-supported location, such as the playbook directory or inventory directory.
