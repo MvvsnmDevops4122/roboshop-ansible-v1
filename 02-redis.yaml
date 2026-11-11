@@ -5,3 +5,8 @@
   tasks:
   - name: Disable Redis module
     command: dnf module disable redis -y
+  
+  tasks:
+  - name: Enable Redis module
+    command: dnf module enable redis:7 -y
+  
