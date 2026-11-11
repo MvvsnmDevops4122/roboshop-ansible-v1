@@ -54,4 +54,26 @@
        dest: /app
        remote_src: true #Extract an archive already on the remote machine
 
+    - name: Install npm dependencies from package.json
+      community.general.npm:
+        path: /app
+
+    - name: Copy the catalogue service file
+      template:                                      # Module to generate a file using Jinja2 templates and copy it to the managed node
+        src: catalogue.service.j2                    # Source template file on the Ansible Controller
+        dest: /etc/systemd/system/catalogue.service  # Destination path on the Managed Node
+
+    - name: Copy MongoDB repo
+      copy:                                # Ansible module to copy files
+        src: mongo.repo                    # Source file on the Ansible control node
+        dest: /etc/yum.repos.d/mongo.repo  # Destination path on the managed node
+
+    - name: install mongodb client
+      dnf:
+       name: mongodb-mongosh
+       state: present
+    
+    
+    
+
 
