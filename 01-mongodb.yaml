@@ -1,61 +1,63 @@
 
 # Playbook to configure MongoDB server
 
-- name: Configuration for MongoDB
-  hosts: mongodb
-  become: yes
+- name: Configuration for MongoDB    # Descriptive name of the play
+  hosts: mongodb                     # Target inventory group
+  become: yes                        # Execute tasks with sudo/root privileges
 
-  tasks:
+  tasks:                             # List of tasks to execute
 
     # -------------------------------------
     # Copy MongoDB repository configuration
     # -------------------------------------
 
     - name: Copy MongoDB repo
-      copy:
-        src: mongo.repo
-        dest: /etc/yum.repos.d/mongo.repo
-  
+      copy:                                # Ansible module to copy files
+        src: mongo.repo                    # Source file on the Ansible control node
+        dest: /etc/yum.repos.d/mongo.repo  # Destination path on the managed node
+
     # -------------------------------------
     # Install MongoDB server
     # -------------------------------------
 
     - name: Install MongoDB server
-      package:
-        name: mongodb-org
-        state: present
+      package:                       # Module to manage software packages
+        name: mongodb-org            # Package name to install
+        state: present               # Ensure the package is installed
 
-    # ----------------------------------
-    # Start MongoDB service and enable 
-    # ----------------------------------
+    # -------------------------------------
+    # Start MongoDB service and enable it
+    # -------------------------------------
 
     - name: Start and enable MongoDB service
-      service:
-        name: mongod
-        state: started
-        enabled: yes
+      service:                       # Module to manage system services
+        name: mongod                 # MongoDB service name
+        state: started               # Ensure the service is running
+        enabled: yes                 # Start the service automatically at boot
 
     # ------------------------------------------
     # Allow MongoDB to accept remote connections
     # ------------------------------------------
 
     - name: Allow remote connections
-      replace:
-        path: /etc/mongod.conf
-        regexp: '127.0.0.1'
-        replace: '0.0.0.0'
-    
+      replace:                       # Module to find and replace text in a file
+        path: /etc/mongod.conf       # Configuration file path
+        regexp: '127.0.0.1'          # Text to search for
+        replace: '0.0.0.0'           # Text to replace it with
+
     # ---------------------------------------------
     # Restart MongoDB to apply configuration changes
-    # ----------------------------------------------
+    # ---------------------------------------------
 
     - name: Restart MongoDB service
       service:
-        name: mongod
-        state: restarted
+        name: mongod                 # MongoDB service name
+        state: restarted             # Restart the service
 
     # -------------------------------------------
     # Test inventory group variables (optional)
+    # -------------------------------------------
+
     # - name: Test the inventory variable
-    #   debug:
-    #     msg: "{{ app_name }}"
+    #   debug:                       # Module to display messages or variable values
+    #     msg: "{{ app_name }}"      # Display the value of app_name

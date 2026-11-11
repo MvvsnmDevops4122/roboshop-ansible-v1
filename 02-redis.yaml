@@ -5,7 +5,7 @@
   tasks:
   - name: Disable Redis 
     command: dnf module disable redis -y
-    
+
   - name: Enable Redis 
     command: dnf module enable redis:7 -y
 
@@ -14,3 +14,25 @@
      name: redis
      state: present
   
+  - name: Allow remote connections
+    # To replace text across a file in Ansible
+    replace:
+        path: /etc/redis/redis.conf
+        regexp: '127.0.0.1'
+        replace: '0.0.0.0'
+
+  - name: Disable protected mode
+    # Match a line and replace the entire line
+    lineinfile:
+     path: /etc/redis/redis.conf
+     regexp: '^#?protected-mode yes'
+     line: 'protected-mode no'
+
+  - name: Start and enable redis service
+    service:                       
+      name: redis                 
+      state: started               
+      enabled: yes   
+
+  
+
