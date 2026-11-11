@@ -1,0 +1,45 @@
+# Playbook to configure MYSQL server
+
+- name: Configuration for MYSQL
+  hosts: mysql                       # Target inventory group
+  become: yes                        # Execute tasks with root privileges
+
+  tasks:                             # List of tasks to execute
+
+    # -------------------------------------
+    # Disable the default mysql module
+    # -------------------------------------
+
+    - name: Disable mysql
+      command: dnf module disable mysql -y
+
+    # -------------------------------------
+    # Enable mysql version 7 module
+    # -------------------------------------
+
+    - name: Enable mysql
+      command: dnf module enable mysql:8.4 -y
+
+    # -------------------------------------
+    # Install mysql server
+    # -------------------------------------
+
+    - name: Install mysql
+      package:
+        name: mysql-server                  # Package name
+        state: present
+                   # Ensure the package is installed
+
+    - name: Start and enable MySQL service
+      service:
+        name: mysqld
+        state: started
+        enabled: yes
+
+   - name: set MySQL root password
+      ansible.mysql.mysql_user:
+        name: root
+        host: local
+        password: "{{ mysql_root_password }}"
+        check_implicit_admin: true
+        state: present
