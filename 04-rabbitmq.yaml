@@ -2,7 +2,7 @@
 # Playbook to configure RabbitMQ server
 
 - name: Configuration for RabbitMQ
-  hosts: rabbitMQ                         # Target inventory group
+  hosts: rabbitmq                         # Target inventory group
   become: yes                              # Execute tasks with root privileges
 
   tasks:                                   # List of tasks to execute
