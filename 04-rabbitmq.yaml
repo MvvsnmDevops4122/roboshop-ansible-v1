@@ -1,0 +1,33 @@
+- name: Configuration for MySQL
+  hosts: mysql                              # Target inventory group
+  become: yes                               # Execute tasks with root privileges
+  tasks:
+
+  - name: Copy MongoDB repo
+    copy:                                
+    src: rabbitmq.repo                    
+    dest: /etc/yum.repos.d/rabbitmq.repo   
+
+  - name: Install rabbitmq
+    package:                              
+     name: 
+     - erlang 
+     - rabbitmq-server                
+     state: present
+
+  - name: Start and enable rabbitmq service
+    service:                              
+      name: rabbitmq-server                        
+      state: started                     
+      enabled: yes    
+
+  - name: Add RabbitMQ user and give permission
+    community.rabbitmq.rabbitmq_user:
+    user: roboshop
+    password: roboshop123
+    vhost: /
+    configure_priv: .*
+    read_priv: .*
+    write_priv: .*
+    state: present
+
