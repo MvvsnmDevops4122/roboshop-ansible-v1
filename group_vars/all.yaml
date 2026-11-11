@@ -1,2 +1,8 @@
 ansible_user: ec2-user
 ansible_password: DevOps321
+
+
+# group_vars is a special Ansible directory.
+# Ansible automatically loads matching group variables.
+# The filename must match the inventory group name.(EX: mongodb=mongodb.yaml)
+# The directory should be in an Ansible-supported location, such as the playbook directory or inventory directory.

@@ -1,44 +1,61 @@
-- name: configuration for mongodb
+
+# Playbook to configure MongoDB server
+
+- name: Configuration for MongoDB
   hosts: mongodb
   become: yes
+
   tasks:
-  - name: copy mongo repo
-    copy:
-      src: mongo.repo
-      dest: /etc/yum.repos.d/mongo.repo
 
+    # -------------------------------------
+    # Copy MongoDB repository configuration
+    # -------------------------------------
 
-  # - name: test the inventory variable
-  #   debug:
-  #    msg: "{{ app_name }}"
-
-
-# group_vars is a special Ansible directory.
-# Ansible automatically loads matching group variables.
-# The filename must match the inventory group name.
-# The directory should be in an Ansible-supported location, such as the playbook directory or inventory directory.
-
-  - name: install mongo db server
-    package:
-     name: mongodb-org
-     state: present
-
-  - name: started and enabled mongodb server
-    service:
-      name: mongod
-      state: started
-      enabled: yes
+    - name: Copy MongoDB repo
+      copy:
+        src: mongo.repo
+        dest: /etc/yum.repos.d/mongo.repo
   
-  - name: allow remote connections
-    replace: 
-     path: /etc/mongod.conf
-     regexp: '127.0.0.1'
-     replace: '0.0.0.0'
+    # -------------------------------------
+    # Install MongoDB server
+    # -------------------------------------
 
-  - name: Restart service mongodb
-    service:
-     name: mongod
-     state: restarted
+    - name: Install MongoDB server
+      package:
+        name: mongodb-org
+        state: present
 
-  
-  
+    # ----------------------------------
+    # Start MongoDB service and enable 
+    # ----------------------------------
+
+    - name: Start and enable MongoDB service
+      service:
+        name: mongod
+        state: started
+        enabled: yes
+
+    # ------------------------------------------
+    # Allow MongoDB to accept remote connections
+    # ------------------------------------------
+
+    - name: Allow remote connections
+      replace:
+        path: /etc/mongod.conf
+        regexp: '127.0.0.1'
+        replace: '0.0.0.0'
+    
+    # ---------------------------------------------
+    # Restart MongoDB to apply configuration changes
+    # ----------------------------------------------
+
+    - name: Restart MongoDB service
+      service:
+        name: mongod
+        state: restarted
+
+    # -------------------------------------------
+    # Test inventory group variables (optional)
+    # - name: Test the inventory variable
+    #   debug:
+    #     msg: "{{ app_name }}"
