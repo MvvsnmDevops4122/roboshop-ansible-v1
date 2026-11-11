@@ -19,7 +19,7 @@
 # The directory should be in an Ansible-supported location, such as the playbook directory or inventory directory.
 
   - name: install mongo db server
-    pacakage:
+    package:
      name: mongodb-org
      state: present
 
