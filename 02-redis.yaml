@@ -5,12 +5,10 @@
   tasks:
   - name: Disable Redis 
     command: dnf module disable redis -y
-  
-  tasks:
+    
   - name: Enable Redis 
     command: dnf module enable redis:7 -y
-  
-  tasks:
+
   - name: Install Redis 
     package:
      name: redis
