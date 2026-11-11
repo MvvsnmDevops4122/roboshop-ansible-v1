@@ -24,8 +24,8 @@
       state: present
 
   - name: started and enabled mongodb server
-      service:
-        name: mongod
-        state: started
-        enabled: yes
+    service:
+      name: mongod
+      state: started
+      enabled: yes
   
