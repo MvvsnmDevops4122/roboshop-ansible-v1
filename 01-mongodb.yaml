@@ -20,8 +20,8 @@
 
   - name: install mongo db server
     pacakage:
-      name: mongodb-org
-      state: present
+     name: mongodb-org
+     state: present
 
   - name: started and enabled mongodb server
     service:
