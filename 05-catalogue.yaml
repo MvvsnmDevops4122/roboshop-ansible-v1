@@ -52,5 +52,6 @@
       unarchive:
        src: /tmp/catalogue.zip
        dest: /app
+       remote_src: true #Extract an archive already on the remote machine
 
 
