@@ -1,5 +1,5 @@
 - name: Configuration for catalogue
-  hosts: redis                       # Target inventory group
+  hosts: catalogue                     # Target inventory group
   become: yes                        # Execute tasks with root privileges
 
   tasks:                             # List of tasks to execute
