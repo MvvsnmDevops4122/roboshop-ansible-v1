@@ -1,11 +1,10 @@
 # Playbook to configure MYSQL server
 
 - name: Configuration for MYSQL
-  hosts: mysql                       # Target inventory group
-  become: yes                        # Execute tasks with root privileges
+  hosts: mysql # Target inventory group
+  become: yes # Execute tasks with root privileges
 
-  tasks:                             # List of tasks to execute
-
+  tasks: # List of tasks to execute
     # -------------------------------------
     # Disable the default mysql module
     # -------------------------------------
@@ -26,9 +25,10 @@
 
     - name: Install mysql
       package:
-        name: mysql-server                  # Package name
-        state: present
-                   # Ensure the package is installed
+        name: mysql-server # Package name
+        state:
+          present
+          # Ensure the package is installed
 
     - name: Start and enable MySQL service
       service:
@@ -36,10 +36,13 @@
         state: started
         enabled: yes
 
-    -  name: set MySQL root password
-       ansible.mysql.mysql_user:
-        name: root
-        host: local
-        password: "{{ mysql_root_password }}"
-        check_implicit_admin: true
-        state: present
+    # -  name: set MySQL root password
+    #    ansible.mysql.mysql_user:
+    #     name: root
+    #     host: local
+    #     password: "{{ mysql_root_password }}"
+    #     check_implicit_admin: true
+    #     state: present
+
+    - name: set MySQL root password
+      command: mysql_secure_installation --set-root-pass {{ mysql_root_password }}
