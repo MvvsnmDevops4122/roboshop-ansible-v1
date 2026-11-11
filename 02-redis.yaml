@@ -1,0 +1,7 @@
+- name: Configuration for MongoDB
+  hosts: redis
+  become: yes
+
+  tasks:
+  - name: Disable Redis module
+    command: dnf module disable redis -y
