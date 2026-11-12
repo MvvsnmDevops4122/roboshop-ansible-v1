@@ -1,0 +1,97 @@
+
+# ==========================================================
+# Playbook: Configure cart Service
+# ==========================================================
+
+- name: Configuration for cart
+  hosts: cart                       # Target cart servers
+  become: yes                             # Run tasks as root cart
+
+  tasks:
+
+    # --------------------------------------------------------
+    # Configure Node.js 24
+    # --------------------------------------------------------
+    - name: Disable cart
+      command: dnf module disable nodejs -y  # Disable the default Node.js version
+
+    - name: Enable cart
+      command: dnf module enable nodejs:24 -y # Enable Node.js version 24
+
+    - name: Install cart
+      package:
+        name: nodejs                       # Package to install
+        state: present                     # Ensure the package is installed
+
+    # --------------------------------------------------------
+    # Create RoboShop system cart
+    # --------------------------------------------------------
+    - name: Create roboshop system cart
+      cart:                                # Module to manage Linux carts
+        name: roboshop                     # cartname to create
+        create_home: false                 # Do not create a home directory
+        home: /app                         # Set the home directory path
+        system: true                       # Create a system-level account
+        shell: /sbin/nologin               # Prevent interactive login
+        comment: "roboshop system cart"    # Description of the cart
+
+    # --------------------------------------------------------
+    # Prepare application directory
+    # --------------------------------------------------------
+    - name: Remove existing app directory
+      ansible.builtin.file:                # Module to manage files and directories
+        path: /app                         # Application directory path
+        state: absent                      # Remove the directory and its contents
+
+    - name: Remove cart.zip
+      ansible.builtin.file:
+        path: /tmp/cart.zip           # ZIP file location
+        state: absent                      # Remove the existing ZIP file
+
+    - name: Create app directory
+      ansible.builtin.file:
+        path: /app                         # Application directory path
+        state: directory                   # Ensure the directory exists
+
+    # --------------------------------------------------------
+    # Download and extract cart source code
+    # --------------------------------------------------------
+    - name: Download source code
+      get_url:                             # Module to download files from a URL
+        url: https://raw.githubcartcontent.com/daws-92s/roboshop-documentation/refs/heads/main/artifacts/cart-v4.zip
+        dest: /tmp/cart.zip           # Save the downloaded file here
+
+    - name: Unzip file
+      unarchive:                           # Module to extract archive files
+        src: /tmp/cart.zip            # Source ZIP file
+        dest: /app                         # Extract files into /app
+        remote_src: true                   # # Use the archive file already present on the target server.
+
+    # --------------------------------------------------------
+    # Install Node.js application dependencies
+    # --------------------------------------------------------
+    - name: Install npm dependencies
+      community.general.npm:               # Module to manage npm packages
+        path: /app                         # Directory containing package.json
+
+    # --------------------------------------------------------
+    # Configure cart service
+    # --------------------------------------------------------
+    - name: Copy the cart service file
+      template:                            # Module to generate a file using Jinja2 templates and copy it to the managed node
+        src: cart.service.j2          # Template file on Ansible Controller
+        dest: /etc/systemd/system/cart.service # Destination on target server
+
+
+    # --------------------------------------------------------
+    # Reload systemd and start cart service
+    # --------------------------------------------------------
+    - name: Daemon reload
+      systemd_service:                     # Module to manage systemd
+        daemon_reload: true                # Reload systemd configuration files
+
+    - name: Start and enable cart
+      service:                             # Module to manage Linux services
+        name: cart                    # cart service name
+        state: restarted                   # Restart the service
+        enabled: yes                       # Start automatically during system boot
