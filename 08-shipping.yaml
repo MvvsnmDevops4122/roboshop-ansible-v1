@@ -105,29 +105,7 @@
       command: mv target/shipping.jar shipping.jar
       args:
         chdir: /app
-
-    # --------------------------------------------------------
-    # 9. Configure Shipping Systemd Service
-    # --------------------------------------------------------
-
-    - name: Copy Shipping service file
-      template:                            # Process Jinja2 template and copy it
-        src: shipping.service.j2           # Source service template on control node
-        dest: /etc/systemd/system/shipping.service  # Destination on Shipping server
-
-    # --------------------------------------------------------
-    # 10. Reload Systemd and Start Shipping Service
-    # --------------------------------------------------------
-
-    - name: Reload systemd
-      systemd_service:                     # Module to manage systemd
-        daemon_reload: true                # Reload systemd unit files
-
-    - name: Start and enable Shipping service
-      service:                             # Module to manage Linux services
-        name: shipping                     # Service name
-        state: restarted                   # Restart the Shipping service
-        enabled: yes                       # Start automatically during boot
+        
 
     - name: check cities data exist or not
       command: mysql -h "{{ mysql_host }}" -u root -p{{ mysql_root_password }} -N -B -e "SELECT COUNT(*) FROM cities.cities;"
@@ -137,4 +115,29 @@
 
     - name: print cities_count
       debug:
-      msg: "{{ cities_count }}"
+       msg: "{{ cities_count }}"
+
+    # --------------------------------------------------------
+    # 9. Configure Shipping Systemd Service
+    # --------------------------------------------------------
+
+    # - name: Copy Shipping service file
+    #   template:                            # Process Jinja2 template and copy it
+    #     src: shipping.service.j2           # Source service template on control node
+    #     dest: /etc/systemd/system/shipping.service  # Destination on Shipping server
+
+    # # --------------------------------------------------------
+    # # 10. Reload Systemd and Start Shipping Service
+    # # --------------------------------------------------------
+
+    # - name: Reload systemd
+    #   systemd_service:                     # Module to manage systemd
+    #     daemon_reload: true                # Reload systemd unit files
+
+    # - name: Start and enable Shipping service
+    #   service:                             # Module to manage Linux services
+    #     name: shipping                     # Service name
+    #     state: restarted                   # Restart the Shipping service
+    #     enabled: yes                       # Start automatically during boot
+
+    
