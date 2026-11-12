@@ -23,6 +23,7 @@
           - maven                          # Install Maven build tool
           - java-25-openjdk-devel          # Install Java 25 development tools
           - maven-openjdk25                # Configure Maven to use Java 25
+          - mysql               
         state: present                     # Ensure packages are installed
 
     # --------------------------------------------------------
@@ -127,3 +128,13 @@
         name: shipping                     # Service name
         state: restarted                   # Restart the Shipping service
         enabled: yes                       # Start automatically during boot
+
+    - name: check cities data exist or not
+      command: mysql -h "{{ mysql_host }}" -u root -p{{ mysql_root_password }} -N -B -e "SELECT COUNT(*) FROM cities.cities;"
+      register: cities_count
+      ignore_errors: true
+  
+
+    - name: print cities_count
+      debug:
+      msg: "{{ cities_count }}"
