@@ -1,16 +1,99 @@
+
+# ==========================================================
+# Playbook: Configure Shipping Service
+# ==========================================================
+
 - name: Configuration for shipping
   hosts: shipping
   become: yes
 
   tasks:
-  - name: enable maven3.9
-    command: dnf module enable maven:3.9 -y
-  
-  - name: install maven and java25
-    dnf: 
-     name: 
-     - maven
-     - java-25-openjdk-devel
-     state: present
 
- 
+    # --------------------------------------------------------
+    # 1. Enable Maven 3.9 and install Maven and Java 25
+    # --------------------------------------------------------
+    - name: Enable Maven 3.9
+      command: dnf module enable maven:3.9 -y
+
+    - name: Install Maven and Java 25
+      dnf:
+        name:
+          - maven
+          - java-25-openjdk-devel
+        state: present
+
+    # --------------------------------------------------------
+    # 2. Find Java 25 installation path
+    # --------------------------------------------------------
+    - name: Find Java 25 path
+      shell: readlink -f $(ls /usr/lib/jvm/java-25-openjdk*/bin/java | head -1)
+      register: java25
+
+    - name: Print Java 25 path
+      debug:
+        msg: "{{ java25.stdout }}"
+
+    # --------------------------------------------------------
+    # 3. Make Java 25 the default version
+    # --------------------------------------------------------
+    - name: Make Java 25 as default
+      command: alternatives --set java {{ java25.stdout }}
+
+    # --------------------------------------------------------
+    # 4. Set JAVA_HOME environment variable
+    # --------------------------------------------------------
+    - name: Set JAVA_HOME
+      copy:
+        content: "export JAVA_HOME={{ java25.stdout | dirname | dirname }}"
+        dest: /etc/profile.d/java.sh
+
+    # --------------------------------------------------------
+    # 5. Create RoboShop system user
+    # --------------------------------------------------------
+    - name: Create roboshop system user
+      user:
+        name: roboshop
+        create_home: false
+        home: /app
+        system: true
+        shell: /sbin/nologin
+        comment: "roboshop system user"
+
+    # --------------------------------------------------------
+    # 6. Prepare application directory
+    # --------------------------------------------------------
+    - name: Remove existing app directory
+      file:
+        path: /app
+        state: absent
+
+    - name: Remove existing shipping.zip
+      file:
+        path: /tmp/shipping.zip
+        state: absent
+
+    - name: Create app directory
+      file:
+        path: /app
+        state: directory
+
+    # --------------------------------------------------------
+    # 7. Download and extract Shipping source code
+    # --------------------------------------------------------
+    - name: Download Shipping source code
+      get_url:
+        url: https://raw.githubusercontent.com/daws-92s/roboshop-documentation/refs/heads/main/artifacts/shipping-v4.zip
+        dest: /tmp/shipping.zip
+
+    - name: Extract Shipping source code
+      unarchive:
+        src: /tmp/shipping.zip
+        dest: /app
+        remote_src: true
+    
+    - name: Install dependencies
+      command: mvn clean package
+      args:
+       chdir: /app
+      
+       
