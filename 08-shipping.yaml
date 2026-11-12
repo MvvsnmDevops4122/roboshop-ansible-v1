@@ -3,108 +3,131 @@
 # Playbook: Configure Shipping Service
 # ==========================================================
 
-- name: Configuration for shipping
-  hosts: shipping
-  become: yes
+- name: Configuration for Shipping
+  hosts: shipping                         # Target Shipping servers
+  become: yes                             # Execute tasks with root privileges
 
   tasks:
 
     # --------------------------------------------------------
-    # 1. Enable Maven 3.9 and install Maven and Java 25
+    # 1. Enable Maven 3.9 and Install Required Packages
     # --------------------------------------------------------
+
     - name: Enable Maven 3.9
       command: dnf module enable maven:3.9 -y
+      # Enable Maven version 3.9 module stream
 
     - name: Install Maven and Java 25
-      dnf:
+      dnf:                                 # Module to manage packages
         name:
-          - maven
-          - java-25-openjdk-devel
-          - maven-openjdk25 # installing this so that no need to set JAVA_HOME again
-        state: present
-
-    # # --------------------------------------------------------
-    # # 2. Find Java 25 installation path
-    # # --------------------------------------------------------
-    # - name: Find Java 25 path
-    #   shell: readlink -f $(ls /usr/lib/jvm/java-25-openjdk*/bin/java | head -1)
-    #   register: java25
-
-    # - name: Print Java 25 path
-    #   debug:
-    #     msg: "{{ java25.stdout }}"
+          - maven                          # Install Maven build tool
+          - java-25-openjdk-devel          # Install Java 25 development tools
+          - maven-openjdk25                # Configure Maven to use Java 25
+        state: present                     # Ensure packages are installed
 
     # --------------------------------------------------------
-    # 3. Make Java 25 the default version
-    # # --------------------------------------------------------
-    # - name: Make Java 25 as default
-    #   command: alternatives --set java {{ java25.stdout }}
+    # 2. Verify Maven and Java Versions
+    # --------------------------------------------------------
 
-    # # --------------------------------------------------------
-    # # 4. Set JAVA_HOME environment variable
-    # # --------------------------------------------------------
-    # - name: Set JAVA_HOME
-    #   copy:
-    #     content: "export JAVA_HOME={{ java25.stdout | dirname | dirname }}"
-    #     dest: /etc/profile.d/java.sh
+    - name: Check Maven version
+      command: mvn --version               # Display Maven and Java versions
+      args:
+        chdir: /app                        # Execute command from /app directory
+      register: mvn_default                # Store command output in a variable
+
+    - name: Print Maven version
+      debug:                               # Module to display variable values
+        msg: "{{ mvn_default.stdout_lines }}" # Print Maven and Java details
 
     # --------------------------------------------------------
-    # 5. Create RoboShop system user
+    # 3. Create RoboShop System User
     # --------------------------------------------------------
+
     - name: Create roboshop system user
-      user:
-        name: roboshop
-        create_home: false
-        home: /app
-        system: true
-        shell: /sbin/nologin
-        comment: "roboshop system user"
+      user:                                # Module to manage Linux users
+        name: roboshop                     # Username to create
+        create_home: false                 # Do not create a home directory
+        home: /app                         # Set the home directory path
+        system: true                       # Create a system-level account
+        shell: /sbin/nologin               # Prevent interactive login
+        comment: "roboshop system user"    # Description of the user
 
     # --------------------------------------------------------
-    # 6. Prepare application directory
+    # 4. Prepare Application Directory
     # --------------------------------------------------------
+
     - name: Remove existing app directory
-      file:
-        path: /app
-        state: absent
+      file:                                # Module to manage files/directories
+        path: /app                         # Application directory
+        state: absent                      # Remove directory and its contents
 
     - name: Remove existing shipping.zip
       file:
-        path: /tmp/shipping.zip
-        state: absent
+        path: /tmp/shipping.zip            # ZIP file location
+        state: absent                      # Remove existing ZIP file
 
     - name: Create app directory
       file:
-        path: /app
-        state: directory
+        path: /app                         # Application directory
+        state: directory                   # Ensure directory exists
+        owner: roboshop                    # Set directory owner
+        group: roboshop                    # Set directory group
 
     # --------------------------------------------------------
-    # 7. Download and extract Shipping source code
+    # 5. Download and Extract Shipping Source Code
     # --------------------------------------------------------
+
     - name: Download Shipping source code
-      get_url:
+      get_url:                             # Module to download files from a URL
         url: https://raw.githubusercontent.com/daws-92s/roboshop-documentation/refs/heads/main/artifacts/shipping-v4.zip
-        dest: /tmp/shipping.zip
+        dest: /tmp/shipping.zip            # Save downloaded ZIP file here
 
     - name: Extract Shipping source code
-      unarchive:
-        src: /tmp/shipping.zip
-        dest: /app
-        remote_src: true
-    
-    - name: mvn version without JAVA_HOME
-      command: mvn --version
-      args:
-       chdir: /app
-      register: mvn_default
+      unarchive:                           # Module to extract archive files
+        src: /tmp/shipping.zip             # Source ZIP file
+        dest: /app                         # Extract files into /app
+        remote_src: true                   # Archive is already on the remote server
 
-    - name: print mvn version without JAVA_HOME
-      debug:
-       msg: "{{ mvn_default.stdout_lines }}"
+    # --------------------------------------------------------
+    # 6. Set Application Directory Ownership
+    # --------------------------------------------------------
 
-    - name: build shipping
-      command: mvn clean package
+    - name: Set application ownership
+      file:
+        path: /app                         # Application directory
+        owner: roboshop                    # Set owner
+        group: roboshop                    # Set group
+        recurse: yes                       # Apply ownership to all files and directories
+
+    # --------------------------------------------------------
+    # 7. Build Shipping Application
+    # --------------------------------------------------------
+
+    - name: Build Shipping application
+      command: mvn clean package           # Clean old build and create new JAR package
       args:
-       chdir: /app
-      
-       
+        chdir: /app                        # Run Maven from application directory
+      become_user: roboshop                # Build using RoboShop system user
+
+    # --------------------------------------------------------
+    # 8. Configure Shipping Systemd Service
+    # --------------------------------------------------------
+
+    - name: Copy Shipping service file
+      template:                            # Process Jinja2 template and copy it
+        src: shipping.service.j2           # Source service template on control node
+        dest: /etc/systemd/system/shipping.service  # Destination on Shipping server
+
+    # --------------------------------------------------------
+    # 9. Reload Systemd and Start Shipping Service
+    # --------------------------------------------------------
+
+    - name: Reload systemd
+      systemd_service:                     # Module to manage systemd
+        daemon_reload: true                # Reload systemd unit files
+
+    - name: Start and enable Shipping service
+      service:                             # Module to manage Linux services
+        name: shipping                     # Service name
+        state: restarted                   # Restart the Shipping service
+        enabled: yes                       # Start automatically during boot
