@@ -37,7 +37,7 @@
 
     - name: Print Maven version
       debug:                               # Module to display variable values
-        msg: "{{ mvn_default.stdout_lines }}" # Print Maven and Java details
+        msg: "{{ mvn_default }}" # Print Maven and Java details
 
     # --------------------------------------------------------
     # 3. Create RoboShop System User
