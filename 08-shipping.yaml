@@ -97,6 +97,15 @@
         chdir: /app                        # Run Maven from application directory
 
     # --------------------------------------------------------
+    # 8. Move package to /app directory
+    # --------------------------------------------------------
+
+    - name: Move Shipping JAR file
+      command: mv target/shipping.jar shipping.jar
+      args:
+        chdir: /app
+
+    # --------------------------------------------------------
     # 9. Configure Shipping Systemd Service
     # --------------------------------------------------------
 
