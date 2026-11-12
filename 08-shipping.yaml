@@ -37,7 +37,7 @@
 
     - name: Print Maven version
       debug:                               # Module to display variable values
-        msg: "{{ mvn_default }}" # Print Maven and Java details
+        msg: "{{ mvn_default.stdout_lines }}" # Print Maven and Java details
 
     # --------------------------------------------------------
     # 3. Create RoboShop System User
@@ -107,7 +107,6 @@
       command: mvn clean package           # Clean old build and create new JAR package
       args:
         chdir: /app                        # Run Maven from application directory
-      become_user: roboshop                # Build using RoboShop system user
 
     # --------------------------------------------------------
     # 8. Configure Shipping Systemd Service
