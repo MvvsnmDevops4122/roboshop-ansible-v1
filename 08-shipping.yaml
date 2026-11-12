@@ -17,13 +17,13 @@
       command: dnf module enable maven:3.9 -y
       # Enable Maven version 3.9 module stream
 
-    - name: Install Maven and Java 25
+    - name: Install Maven, Java 25 and MySQL Client
       dnf:                                 # Module to manage packages
         name:
           - maven                          # Install Maven build tool
           - java-25-openjdk-devel          # Install Java 25 development tools
           - maven-openjdk25                # Configure Maven to use Java 25
-          - mysql               
+          - mysql                          # Install MySQL client
         state: present                     # Ensure packages are installed
 
     # --------------------------------------------------------
@@ -51,14 +51,13 @@
     - name: Remove existing shipping.zip
       file:                                # Remove previously downloaded ZIP
         path: /tmp/shipping.zip            # ZIP file location
-        state: absent                      # Ensure old ZIP file is removed
+        state: absent                      # Remove existing ZIP file
 
     - name: Create app directory
       file:                                # Create application directory
         path: /app                         # Application directory
         state: directory                   # Ensure directory exists
-        owner: roboshop                    # Set directory owner
-        group: roboshop                    # Set directory group
+  
 
     # --------------------------------------------------------
     # 4. Download and Extract Shipping Source Code
@@ -75,9 +74,8 @@
         dest: /app                         # Extract files into /app
         remote_src: true                   # Archive is already on the remote server
 
-
     # --------------------------------------------------------
-    # 7. Verify Maven and Java Versions
+    # 5. Verify Maven and Java Versions
     # --------------------------------------------------------
 
     - name: Check Maven version
@@ -89,7 +87,7 @@
         msg: "{{ mvn_default.stdout_lines }}" # Print Maven and Java details
 
     # --------------------------------------------------------
-    # 8. Build Shipping Application
+    # 6. Build Shipping Application
     # --------------------------------------------------------
 
     - name: Build Shipping application
@@ -98,60 +96,69 @@
         chdir: /app                        # Run Maven from application directory
 
     # --------------------------------------------------------
-    # 8. Move package to /app directory
+    # 7. Move Shipping JAR File
     # --------------------------------------------------------
 
     - name: Move Shipping JAR file
       command: mv target/shipping.jar shipping.jar
       args:
-        chdir: /app
+        chdir: /app                        # Execute command from /app directory
 
+    # --------------------------------------------------------
+    # 8. Check Whether Cities Data Exists in MySQL
+    # --------------------------------------------------------
 
-    - name: check cities data exist or not
+    - name: Check cities data exist or not
       command: mysql -h "{{ mysql_host }}" -u root -p{{ mysql_root_password }} -N -B -e "SELECT COUNT(*) FROM cities.cities;"
-      register: cities_count
-      ignore_errors: true
+      register: cities_count               # Store query result
+      ignore_errors: true                  # Continue if query fails
       tags:
-      - mysql
+        - mysql
 
-    - name: print cities_count
-      debug:
-       msg: "{{ cities_count }}"
+    - name: Print cities_count
+      debug:                               # Display cities query result
+        msg: "{{ cities_count }}"
       tags:
-      - mysql
+        - mysql
 
-    - name: load cities data into mysql
+    # --------------------------------------------------------
+    # 9. Load Cities Master Data into MySQL
+    # --------------------------------------------------------
+
+    - name: Load cities data into MySQL
       shell: mysql -h "{{ mysql_host }}" -u root -p{{ mysql_root_password }} < /app/db/master-data.sql
       when: cities_count.rc != 0 or cities_count.stdout | int == 0
       tags:
-      - mysql
+        - mysql
 
-    - name: create app user in mysql
+    # --------------------------------------------------------
+    # 10. Create Application User in MySQL
+    # --------------------------------------------------------
+
+    - name: Create app user in MySQL
       shell: mysql -h "{{ mysql_host }}" -u root -p{{ mysql_root_password }} < /app/db/app-user.sql
       tags:
-      - mysql
+        - mysql
 
     # --------------------------------------------------------
-    # 9. Configure Shipping Systemd Service
+    # 11. Configure Shipping Systemd Service
     # --------------------------------------------------------
 
-    # - name: Copy Shipping service file
-    #   template:                            # Process Jinja2 template and copy it
-    #     src: shipping.service.j2           # Source service template on control node
-    #     dest: /etc/systemd/system/shipping.service  # Destination on Shipping server
+    - name: Copy Shipping service file
+      template:                            # Process Jinja2 template and copy it
+        src: shipping.service.j2           # Source service template on control node
+        dest: /etc/systemd/system/shipping.service  # Destination on Shipping server
 
-    # # --------------------------------------------------------
-    # # 10. Reload Systemd and Start Shipping Service
-    # # --------------------------------------------------------
+    # --------------------------------------------------------
+    # 12. Reload Systemd and Start Shipping Service
+    # --------------------------------------------------------
 
-    # - name: Reload systemd
-    #   systemd_service:                     # Module to manage systemd
-    #     daemon_reload: true                # Reload systemd unit files
+    - name: Reload systemd
+      systemd_service:                     # Module to manage systemd
+        daemon_reload: true                # Reload systemd unit files
 
-    # - name: Start and enable Shipping service
-    #   service:                             # Module to manage Linux services
-    #     name: shipping                     # Service name
-    #     state: restarted                   # Restart the Shipping service
-    #     enabled: yes                       # Start automatically during boot
-
-    
+    - name: Start and enable Shipping service
+      service:                             # Module to manage Linux services
+        name: shipping                     # Service name
+        state: restarted                   # Restart the Shipping service
+        enabled: yes                       # Start automatically during boot
