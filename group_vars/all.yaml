@@ -1,7 +1,7 @@
 ansible_user: ec2-user
 ansible_password: DevOps321
 mongodb_host: "mongodb.mvvsnm.online"
-
+redis_host: "redis.mvvsnm.online"
 
 # group_vars is a special Ansible directory.
 # Ansible automatically loads matching group variables.
