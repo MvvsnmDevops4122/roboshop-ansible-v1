@@ -3,6 +3,8 @@ ansible_password: DevOps321
 mongodb_host: "mongodb.mvvsnm.online"
 redis_host: "redis.mvvsnm.online"
 catalogue_host: "catalogue.mvvsnm.online"
+mysql_host: "mysql.mvvsnm.online"
+cart_host: "cart.mvvsnm.online"
 
 # group_vars is a special Ansible directory.
 # Ansible automatically loads matching group variables.
