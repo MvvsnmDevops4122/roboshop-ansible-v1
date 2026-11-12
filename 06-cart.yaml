@@ -69,7 +69,7 @@
 
     - name: Download cart source code
       get_url:                     # Module to download files from a URL
-        url: https://raw.githubusercontent.com/daws-92s/roboshop-documentation/refs/heads/main/artifacts/cart-v4.zip
+        url: https://raw.githubusercontent.com/daws-92s/roboshop-documentation/refs/heads/main/artifacts/cart-{{ app_version  }}.zip
         dest: /tmp/cart.zip        # Download destination on remote server
 
     - name: Extract cart source code
