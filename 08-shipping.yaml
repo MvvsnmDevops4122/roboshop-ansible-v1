@@ -20,32 +20,33 @@
         name:
           - maven
           - java-25-openjdk-devel
+          - maven-openjdk25 # installing this so that no need to set JAVA_HOME again
         state: present
 
-    # --------------------------------------------------------
-    # 2. Find Java 25 installation path
-    # --------------------------------------------------------
-    - name: Find Java 25 path
-      shell: readlink -f $(ls /usr/lib/jvm/java-25-openjdk*/bin/java | head -1)
-      register: java25
+    # # --------------------------------------------------------
+    # # 2. Find Java 25 installation path
+    # # --------------------------------------------------------
+    # - name: Find Java 25 path
+    #   shell: readlink -f $(ls /usr/lib/jvm/java-25-openjdk*/bin/java | head -1)
+    #   register: java25
 
-    - name: Print Java 25 path
-      debug:
-        msg: "{{ java25.stdout }}"
+    # - name: Print Java 25 path
+    #   debug:
+    #     msg: "{{ java25.stdout }}"
 
     # --------------------------------------------------------
     # 3. Make Java 25 the default version
-    # --------------------------------------------------------
-    - name: Make Java 25 as default
-      command: alternatives --set java {{ java25.stdout }}
+    # # --------------------------------------------------------
+    # - name: Make Java 25 as default
+    #   command: alternatives --set java {{ java25.stdout }}
 
-    # --------------------------------------------------------
-    # 4. Set JAVA_HOME environment variable
-    # --------------------------------------------------------
-    - name: Set JAVA_HOME
-      copy:
-        content: "export JAVA_HOME={{ java25.stdout | dirname | dirname }}"
-        dest: /etc/profile.d/java.sh
+    # # --------------------------------------------------------
+    # # 4. Set JAVA_HOME environment variable
+    # # --------------------------------------------------------
+    # - name: Set JAVA_HOME
+    #   copy:
+    #     content: "export JAVA_HOME={{ java25.stdout | dirname | dirname }}"
+    #     dest: /etc/profile.d/java.sh
 
     # --------------------------------------------------------
     # 5. Create RoboShop system user
@@ -91,7 +92,17 @@
         dest: /app
         remote_src: true
     
-    - name: Install dependencies
+    - name: mvn version without JAVA_HOME
+      command: mvn --version
+      args:
+       chdir: /app
+      register: mvn_default
+
+    - name: print mvn version without JAVA_HOME
+      debug:
+       msg: "{{ mvn_default.stdout_lines }}"
+
+    - name: build shipping
       command: mvn clean package
       args:
        chdir: /app
