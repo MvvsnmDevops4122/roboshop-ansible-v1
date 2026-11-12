@@ -1,97 +1,112 @@
 
 # ==========================================================
-# Playbook: Configure user Service
+# Playbook: Configure User Service
 # ==========================================================
 
 - name: Configuration for user
-  hosts: user                       # Target user servers
-  become: yes                             # Run tasks as root user
+  hosts: user
+  become: yes                    # Run tasks with root privileges
 
   tasks:
 
-    # --------------------------------------------------------
-    # Configure Node.js 24
-    # --------------------------------------------------------
-    - name: Disable user
-      command: dnf module disable nodejs -y  # Disable the default Node.js version
+    # ------------------------------------------------------
+    # 1. Configure Node.js 24
+    # ------------------------------------------------------
 
-    - name: Enable user
-      command: dnf module enable nodejs:24 -y # Enable Node.js version 24
+    - name: Disable default Node.js version
+      command: dnf module disable nodejs -y
+      # Disable the default Node.js module stream
 
-    - name: Install user
+    - name: Enable Node.js 24
+      command: dnf module enable nodejs:24 -y
+      # Enable Node.js version 24
+
+    - name: Install Node.js
       package:
-        name: nodejs                       # Package to install
-        state: present                     # Ensure the package is installed
+        name: nodejs               # Package to install
+        state: present             # Ensure package is installed
 
-    # --------------------------------------------------------
-    # Create RoboShop system user
-    # --------------------------------------------------------
+
+    # ------------------------------------------------------
+    # 2. Create RoboShop System User
+    # ------------------------------------------------------
+
     - name: Create roboshop system user
-      user:                                # Module to manage Linux users
-        name: roboshop                     # Username to create
-        create_home: false                 # Do not create a home directory
-        home: /app                         # Set the home directory path
-        system: true                       # Create a system-level account
-        shell: /sbin/nologin               # Prevent interactive login
-        comment: "roboshop system user"    # Description of the user
+      user:                        # Module to manage Linux users
+        name: roboshop             # Username to create
+        create_home: false         # Do not create a home directory automatically
+        home: /app                 # Set the user's home directory
+        system: true               # Create a system user
+        shell: /sbin/nologin       # Prevent interactive login
+        comment: "roboshop system user"  # User description
 
-    # --------------------------------------------------------
-    # Prepare application directory
-    # --------------------------------------------------------
+
+    # ------------------------------------------------------
+    # 3. Prepare Application Directory
+    # ------------------------------------------------------
+
     - name: Remove existing app directory
-      ansible.builtin.file:                # Module to manage files and directories
-        path: /app                         # Application directory path
-        state: absent                      # Remove the directory and its contents
+      file:                        # Module to manage files and directories
+        path: /app                 # Application directory
+        state: absent              # Remove directory and its contents
 
-    - name: Remove user.zip
-      ansible.builtin.file:
-        path: /tmp/user.zip           # ZIP file location
-        state: absent                      # Remove the existing ZIP file
+    - name: Remove existing user.zip
+      file:
+        path: /tmp/user.zip        # ZIP file location
+        state: absent              # Remove existing ZIP file
 
     - name: Create app directory
-      ansible.builtin.file:
-        path: /app                         # Application directory path
-        state: directory                   # Ensure the directory exists
+      file:
+        path: /app                 # Directory to create
+        state: directory           # Ensure directory exists
 
-    # --------------------------------------------------------
-    # Download and extract user source code
-    # --------------------------------------------------------
-    - name: Download source code
-      get_url:                             # Module to download files from a URL
+
+    # ------------------------------------------------------
+    # 4. Download and Extract User Source Code
+    # ------------------------------------------------------
+
+    - name: Download user source code
+      get_url:                     # Module to download files from a URL
         url: https://raw.githubusercontent.com/daws-92s/roboshop-documentation/refs/heads/main/artifacts/user-v4.zip
-        dest: /tmp/user.zip           # Save the downloaded file here
+        dest: /tmp/user.zip        # Download destination on remote server
 
-    - name: Unzip file
-      unarchive:                           # Module to extract archive files
-        src: /tmp/user.zip            # Source ZIP file
-        dest: /app                         # Extract files into /app
-        remote_src: true                   # # Use the archive file already present on the target server.
+    - name: Extract user source code
+      unarchive:                   # Module to extract archive files
+        src: /tmp/user.zip         # Source ZIP file on remote server
+        dest: /app                 # Extract files into /app
+        remote_src: true           # Archive already exists on remote server
 
-    # --------------------------------------------------------
-    # Install Node.js application dependencies
-    # --------------------------------------------------------
+
+    # ------------------------------------------------------
+    # 5. Install Node.js Dependencies
+    # ------------------------------------------------------
+
     - name: Install npm dependencies
-      community.general.npm:               # Module to manage npm packages
-        path: /app                         # Directory containing package.json
-
-    # --------------------------------------------------------
-    # Configure user service
-    # --------------------------------------------------------
-    - name: Copy the user service file
-      template:                            # Module to generate a file using Jinja2 templates and copy it to the managed node
-        src: user.service.j2          # Template file on Ansible Controller
-        dest: /etc/systemd/system/user.service # Destination on target server
+      community.general.npm:       # Module to manage npm packages
+        path: /app                 # Directory containing package.json
 
 
-    # --------------------------------------------------------
-    # Reload systemd and start user service
-    # --------------------------------------------------------
-    - name: Daemon reload
-      systemd_service:                     # Module to manage systemd
-        daemon_reload: true                # Reload systemd configuration files
+    # ------------------------------------------------------
+    # 6. Configure User Service
+    # ------------------------------------------------------
 
-    - name: Start and enable user
-      service:                             # Module to manage Linux services
-        name: user                    # user service name
-        state: restarted                   # Restart the service
-        enabled: yes                       # Start automatically during system boot
+    - name: Copy user service file
+      template:                    # Module to process Jinja2 templates
+        src: user.service.j2       # Template file on Ansible Controller
+        dest: /etc/systemd/system/user.service
+        # Destination path on the remote server
+
+
+    # ------------------------------------------------------
+    # 7. Reload Systemd and Start User Service
+    # ------------------------------------------------------
+
+    - name: Reload systemd
+      systemd_service:             # Module to manage systemd
+        daemon_reload: true        # Reload systemd configuration files
+
+    - name: Start and enable user service
+      service:                     # Module to manage Linux services
+        name: user                 # User service name
+        state: restarted           # Restart the service
+        enabled: yes               # Enable service at system boot
