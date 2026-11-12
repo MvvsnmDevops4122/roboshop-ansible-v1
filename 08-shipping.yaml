@@ -26,21 +26,7 @@
         state: present                     # Ensure packages are installed
 
     # --------------------------------------------------------
-    # 2. Verify Maven and Java Versions
-    # --------------------------------------------------------
-
-    - name: Check Maven version
-      command: mvn --version               # Display Maven and Java versions
-      args:
-        chdir: /app                        # Execute command from /app directory
-      register: mvn_default                # Store command output in a variable
-
-    - name: Print Maven version
-      debug:                               # Module to display variable values
-        msg: "{{ mvn_default.stdout_lines }}" # Print Maven and Java details
-
-    # --------------------------------------------------------
-    # 3. Create RoboShop System User
+    # 2. Create RoboShop System User
     # --------------------------------------------------------
 
     - name: Create roboshop system user
@@ -53,7 +39,7 @@
         comment: "roboshop system user"    # Description of the user
 
     # --------------------------------------------------------
-    # 4. Prepare Application Directory
+    # 3. Prepare Application Directory
     # --------------------------------------------------------
 
     - name: Remove existing app directory
@@ -62,19 +48,19 @@
         state: absent                      # Remove directory and its contents
 
     - name: Remove existing shipping.zip
-      file:
+      file:                                # Remove previously downloaded ZIP
         path: /tmp/shipping.zip            # ZIP file location
-        state: absent                      # Remove existing ZIP file
+        state: absent                      # Ensure old ZIP file is removed
 
     - name: Create app directory
-      file:
+      file:                                # Create application directory
         path: /app                         # Application directory
         state: directory                   # Ensure directory exists
         owner: roboshop                    # Set directory owner
         group: roboshop                    # Set directory group
 
     # --------------------------------------------------------
-    # 5. Download and Extract Shipping Source Code
+    # 4. Download and Extract Shipping Source Code
     # --------------------------------------------------------
 
     - name: Download Shipping source code
@@ -88,19 +74,21 @@
         dest: /app                         # Extract files into /app
         remote_src: true                   # Archive is already on the remote server
 
-    # --------------------------------------------------------
-    # 6. Set Application Directory Ownership
-    # --------------------------------------------------------
-
-    - name: Set application ownership
-      file:
-        path: /app                         # Application directory
-        owner: roboshop                    # Set owner
-        group: roboshop                    # Set group
-        recurse: yes                       # Apply ownership to all files and directories
 
     # --------------------------------------------------------
-    # 7. Build Shipping Application
+    # 7. Verify Maven and Java Versions
+    # --------------------------------------------------------
+
+    - name: Check Maven version
+      command: mvn --version               # Display Maven and Java versions
+      register: mvn_default                # Store command output in a variable
+
+    - name: Print Maven version
+      debug:                               # Module to display variable values
+        msg: "{{ mvn_default.stdout_lines }}" # Print Maven and Java details
+
+    # --------------------------------------------------------
+    # 8. Build Shipping Application
     # --------------------------------------------------------
 
     - name: Build Shipping application
@@ -109,7 +97,7 @@
         chdir: /app                        # Run Maven from application directory
 
     # --------------------------------------------------------
-    # 8. Configure Shipping Systemd Service
+    # 9. Configure Shipping Systemd Service
     # --------------------------------------------------------
 
     - name: Copy Shipping service file
@@ -118,7 +106,7 @@
         dest: /etc/systemd/system/shipping.service  # Destination on Shipping server
 
     # --------------------------------------------------------
-    # 9. Reload Systemd and Start Shipping Service
+    # 10. Reload Systemd and Start Shipping Service
     # --------------------------------------------------------
 
     - name: Reload systemd
