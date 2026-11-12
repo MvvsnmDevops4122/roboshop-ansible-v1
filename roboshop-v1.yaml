@@ -8,7 +8,7 @@
   # ansible-playbook roboshop-v1.yaml -e 'instances=["mongodb","redis","rabbitMQ","mysql","catalogue","user","cart"]'
 
   vars:
-    instances: ["mongodb", "redis", "rabbitMQ", "mysql", "catalogue", "user", "cart"] # List of instance names
+    instances: ["mongodb", "redis", "rabbitMQ", "mysql", "catalogue", "user", "cart", "shipping", "payment", "frontend"] # List of instance names
     action: create # Action: create or delete
     ami_id: ami-0055977a6e828a4f4 # AWS AMI ID
     domain_name: mvvsnm.online # Domain name
