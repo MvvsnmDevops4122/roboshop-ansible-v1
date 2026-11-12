@@ -6,6 +6,9 @@ catalogue_host: "catalogue.mvvsnm.online"
 mysql_host: "mysql.mvvsnm.online"
 cart_host: "cart.mvvsnm.online"
 mysql_root_password: RoboShop@1
+shipping_db_user: shipping
+shipping_db_password: RoboShop@1
+
 # group_vars is a special Ansible directory.
 # Ansible automatically loads matching group variables.
 # The filename must match the inventory group name.(EX: mongodb=mongodb.yaml)
