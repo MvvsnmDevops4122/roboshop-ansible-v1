@@ -8,6 +8,9 @@ cart_host: "cart.mvvsnm.online"
 mysql_root_password: RoboShop@1
 shipping_db_user: shipping
 shipping_db_password: RoboShop@1
+rabbitmq_host: "rabbitmq.mvvsnm.online"
+rabbitmq_user: "roboshop"
+rabbitmq_password: "roboshop123"
 
 # group_vars is a special Ansible directory.
 # Ansible automatically loads matching group variables.
