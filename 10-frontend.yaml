@@ -1,0 +1,41 @@
+- name: Configuration for frontend
+  hosts: frontend                       # Target Catalogue servers
+  become: yes                             # Run tasks as root user
+
+  tasks:
+
+    - name: Disable frontend
+      command: dnf module disable nginx -y  
+
+    - name: Enable frontend
+      command: dnf module enable nginx:1.26 -y
+
+    - name: Install frontend
+      package:
+        name: nginx                       
+        state: present      
+
+    - name: start and enable nginx
+      service:
+       name: nginx
+       state: started
+       enabled: yes               
+
+    - name: Find all files and subdirectories inside the target directory
+      ansible.builtin.find:
+      paths: /usr/share/nginx/html/
+      file_type: any
+      hidden: true
+      register: dir_contents
+
+
+    - name: print directory content
+      debug:
+       msg: "{{ dir_contents }}"
+
+
+    # - name: Remove all found files and subdirectories inside the target directory
+    #   ansible.builtin.file:
+    #   path: "{{ item.path }}"
+    #   state: absent
+    #   loop: "{{ dir_contents.files }}"
