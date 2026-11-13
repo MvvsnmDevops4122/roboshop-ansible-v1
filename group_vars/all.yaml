@@ -12,6 +12,8 @@ shipping_db_password: RoboShop@1
 rabbitmq_host: "rabbitmq.mvvsnm.online"
 rabbitmq_user: "roboshop"
 rabbitmq_password: "roboshop123"
+shipping_host: "shipping.mvvsnm.online"
+payment_host: "payment.mvvsnm.online"
 
 # group_vars is a special Ansible directory.
 # Ansible automatically loads matching group variables.
