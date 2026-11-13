@@ -23,10 +23,10 @@
 
     - name: Find all files and subdirectories inside the target directory
       ansible.builtin.find:
-      paths: /usr/share/nginx/html/
-      file_type: any
-      hidden: true
-      register: dir_contents
+       paths: /usr/share/nginx/html/
+       file_type: any
+       hidden: true
+       register: dir_contents
 
 
     - name: print directory content
