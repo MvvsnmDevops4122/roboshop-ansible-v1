@@ -5,6 +5,7 @@ redis_host: "redis.mvvsnm.online"
 catalogue_host: "catalogue.mvvsnm.online"
 mysql_host: "mysql.mvvsnm.online"
 cart_host: "cart.mvvsnm.online"
+user_host: "user.mvvsnm.online"
 mysql_root_password: RoboShop@1
 shipping_db_user: shipping
 shipping_db_password: RoboShop@1
