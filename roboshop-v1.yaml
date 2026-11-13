@@ -11,7 +11,7 @@
   # ansible-playbook roboshop-v1.yaml -e 'instances=["mongodb","redis","rabbitMQ","mysql","catalogue","user","cart"]'
 
   vars:
-    instances: ["mongodb", "redis", "rabbitmq", "mysql", "catalogue", "user", "cart", "shipping", "payment", "frontend"]
+    instances: ["mongodb", "redis", "rabbitMQ", "mysql", "catalogue", "user", "cart", "shipping", "payment", "frontend"]
                                              # List of EC2 instance names to create or delete
 
     action: create                           # Action to perform: create or delete
